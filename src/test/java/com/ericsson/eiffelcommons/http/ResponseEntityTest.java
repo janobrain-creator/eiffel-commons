@@ -1,8 +1,8 @@
 package com.ericsson.eiffelcommons.http;
 
 import static org.junit.Assert.assertEquals;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 
@@ -12,16 +12,13 @@ import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
 import org.apache.http.StatusLine;
 import org.apache.http.util.EntityUtils;
+import org.junit.After;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.ericsson.eiffelcommons.http.ResponseEntity;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ EntityUtils.class })
 public class ResponseEntityTest {
 
     private static final int STATUS_CODE = 200;
@@ -32,6 +29,14 @@ public class ResponseEntityTest {
     private HttpResponse httpResponse;
     private StatusLine statusLine;
     private HttpEntity entity;
+    private MockedStatic<EntityUtils> entityUtilsMock;
+
+    @After
+    public void tearDown() {
+        if (entityUtilsMock != null) {
+            entityUtilsMock.close();
+        }
+    }
 
     @Test
     public void testResponseEntityConstructor() throws ParseException, IOException {
@@ -70,6 +75,6 @@ public class ResponseEntityTest {
         statusLine = Mockito.mock(StatusLine.class);
         entity = Mockito.mock(HttpEntity.class);
 
-        mockStatic(EntityUtils.class);
+        entityUtilsMock = mockStatic(EntityUtils.class);
     }
 }

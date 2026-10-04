@@ -30,6 +30,8 @@
 *   Subscription object
 *   HttpRequest
 
+Requires Java 21 or later. Build and run the tests with `mvn test`.
+
 ## About this repository
 The contents of this repository are licensed under the [Apache License 2.0](./LICENSE).
 
