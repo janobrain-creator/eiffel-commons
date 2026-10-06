@@ -12,6 +12,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -19,7 +20,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockserver.integration.ClientAndServer;
-import org.powermock.reflect.Whitebox;
 
 import com.ericsson.eiffelcommons.http.HttpExecutor;
 import com.ericsson.eiffelcommons.http.ResponseEntity;
@@ -60,27 +60,27 @@ public class HttpExecutorTest {
     }
 
     @Test
-    public void testGetInstance() throws IOException, URISyntaxException {
+    public void testGetInstance() throws IOException, URISyntaxException, IllegalAccessException {
         HttpGet request = new HttpGet();
         request.setURI(new URI(URL_FAKE));
 
         HttpExecutor executor = new HttpExecutor();
-        HttpExecutor instance = Whitebox.getInternalState(executor, "instance", HttpExecutor.class);
+        HttpExecutor instance = (HttpExecutor) FieldUtils.readStaticField(HttpExecutor.class, "instance", true);
         assertNull(instance);
 
         // Test if instance null branch
         executor = HttpExecutor.getInstance();
-        instance = Whitebox.getInternalState(executor, "instance", HttpExecutor.class);
+        instance = (HttpExecutor) FieldUtils.readStaticField(HttpExecutor.class, "instance", true);
         assertNotNull(instance);
 
         // Test if instance not null branch
         executor = HttpExecutor.getInstance();
-        instance = Whitebox.getInternalState(executor, "instance", HttpExecutor.class);
+        instance = (HttpExecutor) FieldUtils.readStaticField(HttpExecutor.class, "instance", true);
         assertNotNull(instance);
 
         // Reset static instance
         instance = null;
-        Whitebox.setInternalState(HttpExecutor.class, "instance", instance);
+        FieldUtils.writeStaticField(HttpExecutor.class, "instance", instance, true);
     }
 
     @Test

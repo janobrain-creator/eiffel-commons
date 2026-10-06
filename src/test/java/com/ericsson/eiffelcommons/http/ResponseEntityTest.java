@@ -1,8 +1,9 @@
 package com.ericsson.eiffelcommons.http;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 
@@ -13,19 +14,15 @@ import org.apache.http.ParseException;
 import org.apache.http.StatusLine;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.ericsson.eiffelcommons.http.ResponseEntity;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ EntityUtils.class })
 public class ResponseEntityTest {
 
     private static final int STATUS_CODE = 200;
-    private static final String CHARSET = "UTF-8";
+    private static final String CHARSET = "utf-8";
     private static final String BODY = "{\"message\":\"dummy\"}";
     private static final Header[] HEADERS = new Header[0];
 
@@ -40,11 +37,17 @@ public class ResponseEntityTest {
         when(httpResponse.getStatusLine()).thenReturn(statusLine);
         when(statusLine.getStatusCode()).thenReturn(STATUS_CODE);
         when(httpResponse.getEntity()).thenReturn(entity);
-        when(EntityUtils.toString(entity, CHARSET)).thenReturn(BODY);
         when(httpResponse.getAllHeaders()).thenReturn(HEADERS);
 
-        ResponseEntity responseEntity = new ResponseEntity(httpResponse);
-        assertEquals(STATUS_CODE, responseEntity.getStatusCode());
+        try (MockedStatic<EntityUtils> entityUtils = mockStatic(EntityUtils.class)) {
+            entityUtils.when(() -> EntityUtils.toString(entity, CHARSET)).thenReturn(BODY);
+
+            ResponseEntity responseEntity = new ResponseEntity(httpResponse);
+            assertEquals(STATUS_CODE, responseEntity.getStatusCode());
+            assertEquals(BODY, responseEntity.getBody());
+            assertArrayEquals(HEADERS, responseEntity.getHeaders());
+            entityUtils.verify(() -> EntityUtils.toString(entity, CHARSET));
+        }
     }
 
     @Test
@@ -57,6 +60,8 @@ public class ResponseEntityTest {
 
         ResponseEntity responseEntity = new ResponseEntity(httpResponse);
         assertEquals(STATUS_CODE, responseEntity.getStatusCode());
+        assertEquals("", responseEntity.getBody());
+        assertArrayEquals(HEADERS, responseEntity.getHeaders());
     }
 
     @Test
@@ -69,7 +74,5 @@ public class ResponseEntityTest {
         httpResponse = Mockito.mock(HttpResponse.class);
         statusLine = Mockito.mock(StatusLine.class);
         entity = Mockito.mock(HttpEntity.class);
-
-        mockStatic(EntityUtils.class);
     }
 }

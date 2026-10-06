@@ -25,10 +25,17 @@
 
 # Eiffel Commons
 ## Java Library
+Requires Java 21 or newer to build and run, including for downstream consumers.
+
 *   Jenkins Manager
 *   RegExProvider
 *   Subscription object
 *   HttpRequest
+
+## Build and test
+Run `mvn -B clean test` with JDK 21. To generate JaCoCo coverage, run
+`mvn -B clean verify`; the HTML and XML reports are written to
+`target/site/jacoco/index.html` and `target/site/jacoco/jacoco.xml`.
 
 ## About this repository
 The contents of this repository are licensed under the [Apache License 2.0](./LICENSE).
