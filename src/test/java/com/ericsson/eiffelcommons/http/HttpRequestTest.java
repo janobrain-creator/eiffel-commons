@@ -24,7 +24,8 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
 import org.junit.Test;
-import org.powermock.reflect.Whitebox;
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.apache.commons.lang3.reflect.MethodUtils;
 
 import com.ericsson.eiffelcommons.http.HttpExecutor;
 import com.ericsson.eiffelcommons.http.HttpRequest;
@@ -59,59 +60,59 @@ public class HttpRequestTest {
         HttpRequest request = new HttpRequest(HttpMethod.POST);
         request.setBaseUrl(URL_2);
         request.setEndpoint(ENDPOINT_1);
-        URIBuilder builder = (URIBuilder) Whitebox.invokeMethod(request, "createURIBuilder");
+        URIBuilder builder = (URIBuilder) MethodUtils.invokeMethod(request, true, "createURIBuilder");
         assertEquals(EXPECTED_URI, builder.toString());
 
         request = new HttpRequest(HttpMethod.GET);
         request.setBaseUrl(URL_2);
         request.setEndpoint(ENDPOINT_1);
-        builder = (URIBuilder) Whitebox.invokeMethod(request, "createURIBuilder");
+        builder = (URIBuilder) MethodUtils.invokeMethod(request, true, "createURIBuilder");
         assertEquals(EXPECTED_URI, builder.toString());
 
         request = new HttpRequest(HttpMethod.DELETE);
         request.setBaseUrl(URL_2);
         request.setEndpoint(ENDPOINT_2);
-        builder = (URIBuilder) Whitebox.invokeMethod(request, "createURIBuilder");
+        builder = (URIBuilder) MethodUtils.invokeMethod(request, true, "createURIBuilder");
         assertEquals(EXPECTED_URI, builder.toString());
 
         request = new HttpRequest(HttpMethod.PUT);
         request.setBaseUrl(URL_2);
         request.setEndpoint(ENDPOINT_2);
-        builder = (URIBuilder) Whitebox.invokeMethod(request, "createURIBuilder");
+        builder = (URIBuilder) MethodUtils.invokeMethod(request, true, "createURIBuilder");
         assertEquals(EXPECTED_URI, builder.toString());
     }
 
     @Test
-    public void testAuthHeader() throws UnsupportedEncodingException {
+    public void testAuthHeader() throws UnsupportedEncodingException, IllegalAccessException {
         HttpRequest request = new HttpRequest(HttpMethod.GET);
         request.setBasicAuth("username", "password");
-        HttpRequestBase client = Whitebox.getInternalState(request, "request");
+        HttpRequestBase client = (HttpRequestBase) FieldUtils.readField(request, "request", true);
         String actualAuthHeader = client.getAllHeaders()[0].toString();
         assertEquals(EXPECTED_HEADER, actualAuthHeader);
     }
 
     @Test
-    public void testSetHttpMethod() {
+    public void testSetHttpMethod() throws IllegalAccessException {
         HttpRequest request = new HttpRequest();
         request.setHttpMethod(HttpMethod.GET);
-        HttpRequestBase method = Whitebox.getInternalState(request, "request", HttpRequest.class);
+        HttpRequestBase method = (HttpRequestBase) FieldUtils.readField(request, "request", true);
         assertTrue(method instanceof HttpGet);
     }
 
     @Test
-    public void testHttpExecutorConstructorAndPersistancy() {
+    public void testHttpExecutorConstructorAndPersistancy() throws IllegalAccessException {
         HttpExecutor executor = new HttpExecutor();
         new HttpRequest(HttpMethod.GET, executor);
-        HttpExecutor instance = Whitebox.getInternalState(executor, "instance", HttpExecutor.class);
+        HttpExecutor instance = (HttpExecutor) FieldUtils.readStaticField(HttpExecutor.class, "instance", true);
         assertNull(instance);
 
         new HttpRequest(HttpMethod.GET, true);
-        instance = Whitebox.getInternalState(executor, "instance", HttpExecutor.class);
+        instance = (HttpExecutor) FieldUtils.readStaticField(HttpExecutor.class, "instance", true);
         assertNotNull(instance);
 
         // Reset static instance
         instance = null;
-        Whitebox.setInternalState(HttpExecutor.class, "instance", instance);
+        FieldUtils.writeStaticField(HttpExecutor.class, "instance", instance, true);
     }
 
     @Test
@@ -125,11 +126,10 @@ public class HttpRequestTest {
     }
 
     @Test
-    public void testBodyProperty() throws UnsupportedOperationException, IOException {
+    public void testBodyProperty() throws UnsupportedOperationException, IOException, IllegalAccessException {
         HttpRequest request = new HttpRequest(HttpMethod.POST);
         request.setBody(BODY_CONTENT, ContentType.APPLICATION_JSON);
-        HttpEntityEnclosingRequestBase requestBase = Whitebox.getInternalState(request, "request",
-                HttpRequest.class);
+        HttpEntityEnclosingRequestBase requestBase = (HttpEntityEnclosingRequestBase) FieldUtils.readField(request, "request", true);
         HttpEntity entity = requestBase.getEntity();
         String actualHeader = entity.getContentType().toString();
         InputStream stream = entity.getContent();
@@ -139,7 +139,7 @@ public class HttpRequestTest {
         assertEquals(BODY_CONTENT, actualBody);
 
         request.setBody(BODY_CONTENT);
-        requestBase = Whitebox.getInternalState(request, "request", HttpRequest.class);
+        requestBase = (HttpEntityEnclosingRequestBase) FieldUtils.readField(request, "request", true);
         entity = requestBase.getEntity();
         actualHeader = entity.getContentType().toString();
         stream = entity.getContent();
@@ -150,7 +150,7 @@ public class HttpRequestTest {
 
         File file = new File(BODY_CONTENT_FILE);
         request.setBody(file);
-        requestBase = Whitebox.getInternalState(request, "request", HttpRequest.class);
+        requestBase = (HttpEntityEnclosingRequestBase) FieldUtils.readField(request, "request", true);
         entity = requestBase.getEntity();
         actualHeader = entity.getContentType().toString();
         stream = entity.getContent();
@@ -186,11 +186,11 @@ public class HttpRequestTest {
     }
 
     @Test
-    public void testHeaderProperty() {
+    public void testHeaderProperty() throws IllegalAccessException {
         HttpRequest request = new HttpRequest(HttpMethod.GET);
         request.addHeader(HEADER_KEY_1, HEADER_VALUE_1);
         request.setHeader(HEADER_KEY_2, HEADER_VALUE_2);
-        HttpRequestBase method = Whitebox.getInternalState(request, "request", HttpRequest.class);
+        HttpRequestBase method = (HttpRequestBase) FieldUtils.readField(request, "request", true);
         String expectedHeader = HEADER_KEY_1 + ": " + HEADER_VALUE_1;
         String actualHeader = method.getAllHeaders()[0].toString();
         assertEquals(expectedHeader, actualHeader);
