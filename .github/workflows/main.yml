@@ -28,7 +28,7 @@ jobs:
       - uses: actions/setup-java@v5.6.0
         with:
           distribution: 'corretto' 
-          java-version: '8'
+          java-version: '21'
                    
       - name: Run All tests
         run: mvn test -B 
@@ -45,16 +45,16 @@ jobs:
       - uses: actions/setup-java@v5.6.0
         with:
           distribution: 'corretto' 
-          java-version: '8'
+          java-version: '21'
           
-      - name: Run cobertura
+      - name: Run tests and JaCoCo coverage
         shell: bash
         run: |
-          mvn cobertura:cobertura -Dcobertura.report.format=xml -B
+          mvn -B test jacoco:report
           
       # Generating test coverage report and publishing to Codacy
       - name: Run report coverage
         uses: codacy/codacy-coverage-reporter-action@v1
         with:
           project-token: e47987d1f0e94f809b08d26cfe24e90f
-          coverage-reports: target/site/cobertura/coverage.xml
+          coverage-reports: target/site/jacoco/jacoco.xml

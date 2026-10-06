@@ -13,10 +13,9 @@ import java.net.ServerSocket;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
-
-import javax.xml.bind.DatatypeConverter;
 
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.conn.UnsupportedSchemeException;
@@ -602,7 +601,7 @@ public class JenkinsManagerTest {
     private String createEncodingFromUsernameAndPassword(String username, String password)
             throws UnsupportedEncodingException {
         String authString = String.join(":", username, password);
-        String encoding = DatatypeConverter.printBase64Binary(authString.getBytes("utf-8"));
+        String encoding = Base64.getEncoder().encodeToString(authString.getBytes("utf-8"));
         return encoding;
     }
 
