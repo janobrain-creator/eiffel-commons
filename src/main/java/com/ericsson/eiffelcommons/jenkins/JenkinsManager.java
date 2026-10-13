@@ -21,7 +21,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.util.Map;
 
-import javax.xml.bind.DatatypeConverter;
+import java.util.Base64;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
@@ -535,7 +535,7 @@ public class JenkinsManager {
     private String createEncodingFromUsernameAndPassword(String username, String password)
             throws UnsupportedEncodingException {
         String authString = String.join(":", username, password);
-        String encoding = DatatypeConverter.printBase64Binary(authString.getBytes("utf-8"));
+        String encoding = Base64.getEncoder().encodeToString(authString.getBytes("utf-8"));
         return encoding;
     }
 
