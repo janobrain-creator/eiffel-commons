@@ -1,8 +1,6 @@
 package com.ericsson.eiffelcommons.http;
 
 import static org.junit.Assert.assertEquals;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
 
 import java.io.IOException;
 
@@ -12,16 +10,13 @@ import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
 import org.apache.http.StatusLine;
 import org.apache.http.util.EntityUtils;
+import org.junit.After;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.ericsson.eiffelcommons.http.ResponseEntity;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ EntityUtils.class })
 public class ResponseEntityTest {
 
     private static final int STATUS_CODE = 200;
@@ -32,16 +27,17 @@ public class ResponseEntityTest {
     private HttpResponse httpResponse;
     private StatusLine statusLine;
     private HttpEntity entity;
+    private MockedStatic<EntityUtils> mockedEntityUtils;
 
     @Test
     public void testResponseEntityConstructor() throws ParseException, IOException {
         setUpMockObjects();
 
-        when(httpResponse.getStatusLine()).thenReturn(statusLine);
-        when(statusLine.getStatusCode()).thenReturn(STATUS_CODE);
-        when(httpResponse.getEntity()).thenReturn(entity);
-        when(EntityUtils.toString(entity, CHARSET)).thenReturn(BODY);
-        when(httpResponse.getAllHeaders()).thenReturn(HEADERS);
+        Mockito.when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        Mockito.when(statusLine.getStatusCode()).thenReturn(STATUS_CODE);
+        Mockito.when(httpResponse.getEntity()).thenReturn(entity);
+        mockedEntityUtils.when(() -> EntityUtils.toString(entity, CHARSET)).thenReturn(BODY);
+        Mockito.when(httpResponse.getAllHeaders()).thenReturn(HEADERS);
 
         ResponseEntity responseEntity = new ResponseEntity(httpResponse);
         assertEquals(STATUS_CODE, responseEntity.getStatusCode());
@@ -50,10 +46,10 @@ public class ResponseEntityTest {
     @Test
     public void testResponseEntityConstructorNullEntity() throws ParseException, IOException {
         setUpMockObjects();
-        when(httpResponse.getStatusLine()).thenReturn(statusLine);
-        when(statusLine.getStatusCode()).thenReturn(STATUS_CODE);
-        when(httpResponse.getEntity()).thenReturn(null);
-        when(httpResponse.getAllHeaders()).thenReturn(new Header[0]);
+        Mockito.when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        Mockito.when(statusLine.getStatusCode()).thenReturn(STATUS_CODE);
+        Mockito.when(httpResponse.getEntity()).thenReturn(null);
+        Mockito.when(httpResponse.getAllHeaders()).thenReturn(new Header[0]);
 
         ResponseEntity responseEntity = new ResponseEntity(httpResponse);
         assertEquals(STATUS_CODE, responseEntity.getStatusCode());
@@ -70,6 +66,13 @@ public class ResponseEntityTest {
         statusLine = Mockito.mock(StatusLine.class);
         entity = Mockito.mock(HttpEntity.class);
 
-        mockStatic(EntityUtils.class);
+        mockedEntityUtils = Mockito.mockStatic(EntityUtils.class);
+    }
+
+    @After
+    public void tearDown() {
+        if (mockedEntityUtils != null) {
+            mockedEntityUtils.close();
+        }
     }
 }
